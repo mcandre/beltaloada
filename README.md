@@ -8,7 +8,9 @@
 
 beltaloada is an unconventional build system. It is written by and for shell script users.
 
-It is not a tool you can install. It is a set of guidelines. beltaloada cannot fail. beltaloada is a way of living.
+It is not a tool you can install. It is a set of guidelines. You write your own build system!
+
+beltaloada cannot fail. beltaloada is a way of living.
 
 # EXAMPLE
 
@@ -49,6 +51,10 @@ To be clear, Command Prompt, fish, ion, PowerShell, rc, (t)csh, Thompson sh, and
 * [awk](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/awk.html)
 
 # BELTALOADA GUIDELINES
+
+## Make it your own
+
+All of these techniques are recommendations. Your project may have specific needs, such as avoiding installing additional components, or latency requirements, or something that conflicts with the ideas described below. You may find a unique solution! Experiment. The best way to know for sure, is to apply different ideas in your own projects.
 
 ## Nest executable and importable project shell scripts in bin/ and lib/
 
@@ -117,11 +123,28 @@ DEFAULT_TASK=all
 
 This resembles the `all` conventional task at the top of traditional makefiles.
 
+## Sketch a usage message
+
+```sh
+help() {
+    echo 'Usage: ./build [<task> [<task> [<task>...]]]
+
+Tasks:
+'
+
+    for TASK in $TASK_NAMES; do
+        echo "* $TASK"
+    done
+}
+```
+
+The implementation for `TASK_NAMES` comes later on. Or you can hardcode a short list. If you do, declare it prior to the `help` function. Because the variable will be reused in other functions.
+
+We place the usage implementation near the top of the file. This way, curious readers who open the source code will immediately see the CLI syntax documentation, without having to search for it.
+
 ## Implement task hierarchies as shell functions
 
 ```sh
-DEFAULT_TASK=all
-
 all() {
     lint
     test
@@ -181,9 +204,9 @@ clean() {
 }
 ```
 
-## Declare a `help` task to enumerate configured tasks
+## Index the task names
 
-And now for the hard part. Generating a help menu from a shell script, using only POSIX features.
+And now for the hard part. Generating an efficient cache of valid task names. In a shell script, using only POSIX features.
 
 ```sh
 TASK_NAMES="$(
@@ -197,20 +220,15 @@ TASK_NAMES="$(
 for TASK_NAME in $TASK_NAMES; do
     eval "BELTALOADA_TASK_${TASK_NAME}='1'"
 done
-
-help() {
-    echo 'Usage: ./build [<task> [<task> [<task>...]]]
-
-Tasks:
-'
-
-    for TASK in $TASK_NAMES; do
-        echo "* $TASK"
-    done
-}
 ```
 
-Useful for quickly looking up task names, without having to read the build system source code. As a side effect, internal variables with the dynamic binding pattern `BELTALOADA_TASK_<task>` are set as entries in a logical hashmap, for the sake of the entrypoint's validation needs.
+Fortunately for awk, one of the few convenient tokens to parse from a shell script is function declarations. (We wouldn't recommend using regular expressions to parse much else from source code.)
+
+This example uses external tools, POSIX `awk` and `sort`, to extract the task names and order them in a pleasing fashion for the console. On various UNIX systems, these tools are commonly provided in the `base`, `coreutils`, and/or `awk` packages. They may or may not be automatically installed in an environment, depending on the minimalism of the operating system.
+
+For convenience and aesthetics, we preemptively sort the list of task names. Or manually sort them, if hardcoded. Note that hardcoding task names may not scale, and violates the DRY principle. What's the DRY princple? Don't Repeat Yourself.
+
+Finally, we cache the names in an improvised hash map. By combining an application specific prefix, `BELTALOADA_TASK_`, with the `${TASK_NAME}` contents, and a nonce `1` value, we get a logical hash entry. That we can query in constant time to check whether the user has supplied valid tasks for the script to run.
 
 Shell languages are unfortunately bereft of basic data structures for fast, reliable programming. Bash may provide more (associative) array functionality, though the primary hashmap available to POSIX sh is the file system, and file system storage is slower than computation.
 
@@ -239,9 +257,17 @@ done
 
 This enables the build script to run the default task when no arguments are supplied to `./build`, and run any named tasks when supplied as `./build <task> [<task> [<task> ...]]]`.
 
-This example uses external tools, POSIX `awk` and `sort`, to extract the task names and order them in a pleasing fashion for the console. On various UNIX systems, these tools are commonly provided in the `base`, `coreutils`, and/or `awk` packages. They may or may not be automatically installed in an environment, depending on the minimalism of the operating system.
+Why validate the task name before execution? A few reasons.
+
+The first involves security. Try temporarily commenting out the `if [ "$VAL" = '0' ]`...`fi` conditional block before the `"$SUPPLIED_TASK"` execution. Doing so enables arbitrary code execution. In other words, a user who runs `./build <command>` can execute *any* command, as long as the command takes the form of a single word. In cybersecurity, it's generally bad form for a script to allow arbitrary, surprise commands to run, at the best of random user input. If the script file has setuid, for example, then the user would be able to trigger a privilege escalation attack.
+
+Another reason for validation is UX, the user experience. Again, try commenting out the validation block. Now run a task, but introduce a typo, like `./build liny`. When validation is disabled, then the bad data passes all the way through the script into a shell subprocess, and a rather generic error results. The user may be confused why the build script "isn't working." Well, the build script is mostly working, but the task data was bad. Validation helps the system to provide more useful error messages to the user, like showing them the list of valid task names.
+
+Of course, validation also reduces accidents. This is critical in a larger build system, such as a complex CI/CD pipeline. Our `./build`... commands may be nested in yet larger scripts, such as linter suites or GitHub Actions pipelines. Validating early, at the individual component level, raises overall system reliability. You wouldn't want bad data and vague error messages polluting a large computer system. Layering validation checks into each application, makes bug hunting a breeze.
 
 Together, the DRY principle and input validation raise the quality bar for our build system. This is critical, because any faults in a cloud CI/CD build are often obfuscated by subtle shell scripting bugs.
+
+Don't Repeat Yourself.
 
 ## Move complicated processes to `.beltaloada/{bin,lib}/`
 

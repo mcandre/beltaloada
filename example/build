@@ -4,6 +4,17 @@ set -euf
 
 DEFAULT_TASK=lint
 
+help() {
+    echo 'Usage: ./build [<task> [<task> [<task>...]]]
+
+Tasks:
+'
+
+    for TASK in $TASK_NAMES; do
+        echo "* $TASK"
+    done
+}
+
 lint() {
     bashate
     funk
@@ -55,17 +66,6 @@ TASK_NAMES="$(
 for TASK_NAME in $TASK_NAMES; do
     eval "BELTALOADA_TASK_${TASK_NAME}='1'"
 done
-
-help() {
-    echo 'Usage: ./build [<task> [<task> [<task>...]]]
-
-Tasks:
-'
-
-    for TASK in $TASK_NAMES; do
-        echo "* $TASK"
-    done
-}
 
 if [ "$#" -eq 0 ]; then
     "$DEFAULT_TASK"
