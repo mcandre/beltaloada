@@ -1,0 +1,85 @@
+#!/bin/sh
+unset IFS
+set -euf
+
+DEFAULT_TASK=lint
+
+lint() {
+    bashate
+    funk
+    shellcheck
+    shfmt
+    slick
+}
+
+bashate() {
+    stank . |
+        xargs -n 1 bashate -i E006
+}
+
+funk() {
+    command funk .
+}
+
+shellcheck() {
+    stank -exInterp zsh . |
+        xargs -n 1 shellcheck
+}
+
+shfmt() {
+    stank -exInterp zsh . |
+        xargs -n 1 shfmt -w -i 4
+}
+
+slick() {
+    stank -sh . |
+        xargs -n 1 slick
+}
+
+audit() {
+    safety
+}
+
+safety() {
+    command safety check
+}
+
+TASK_NAMES="$(
+    awk '/^[a-zA-Z0-9_]+\(\)/ {
+        split($0, a, /\(\)/);
+        print a[1]
+    }' "$0" |
+        sort
+)"
+
+for TASK_NAME in $TASK_NAMES; do
+    eval "BELTALOADA_TASK_${TASK_NAME}='1'"
+done
+
+help() {
+    echo 'Usage: ./build [<task> [<task> [<task>...]]]
+
+Tasks:
+'
+
+    for TASK in $TASK_NAMES; do
+        echo "* $TASK"
+    done
+}
+
+if [ "$#" -eq 0 ]; then
+    "$DEFAULT_TASK"
+    exit 0
+fi
+
+for SUPPLIED_TASK in "$@"; do
+    KEY="BELTALOADA_TASK_${SUPPLIED_TASK}"
+    VAL="$(eval "echo \"\${$KEY-0}\"")"
+
+    if [ "$VAL" = '0' ]; then
+        help
+        exit 1
+    fi
+
+    "$SUPPLIED_TASK"
+done
