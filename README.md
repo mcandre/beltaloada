@@ -302,6 +302,7 @@ New contributors should be informed how to compiled a compiled project, how to t
 * [bashate](https://github.com/openstack/bashate), a shell script style linter
 * [bb](https://github.com/mcandre/bb), a build system for (g)awk projects
 * [Gradle](https://gradle.org/), a build system for JVM projects
+* [jelly](https://github.com/mcandre/jelly), a JSON task runner
 * [lake](https://luarocks.org/modules/steved/lake), a Lua task runner
 * [lichen](https://github.com/mcandre/lichen), a sed task runner
 * [Mage](https://magefile.org/), a task runner for Go projects
