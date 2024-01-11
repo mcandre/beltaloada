@@ -313,6 +313,7 @@ New contributors should be informed how to compiled a compiled project, how to t
 * [Rake](https://ruby.github.io/rake/), a task runner for Ruby projects
 * [Rebar3](https://www.rebar3.org/), a build system for Erlang projects
 * [rez](https://github.com/mcandre/rez) builds C/C++ projects
+* [sbt](https://www.scala-sbt.org/index.html), a build system for Scala projects
 * [Shake](https://shakebuild.com/), a task runner for Haskell projects
 * [ShellCheck](https://www.shellcheck.net/), a shell script linter with a rich collection of rules for promoting safer scripting
 * [slick](https://github.com/mcandre/slick), a linter to enforce stricter, unextended POSIX sh syntax compliance
