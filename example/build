@@ -48,11 +48,11 @@ slick() {
 }
 
 audit() {
-    safety
+    snyk
 }
 
-safety() {
-    command safety check
+snyk() {
+    command snyk test
 }
 
 TASK_NAMES="$(
