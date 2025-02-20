@@ -49,6 +49,7 @@ To be clear, Command Prompt, fish, ion, PowerShell, rc, (t)csh, Thompson sh, and
 ## Recommended
 
 * [awk](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/awk.html)
+* [zsh](https://www.zsh.org/)
 
 # BELTALOADA GUIDELINES
 
