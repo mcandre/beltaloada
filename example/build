@@ -47,14 +47,6 @@ slick() {
         xargs -n 1 slick
 }
 
-audit() {
-    snyk
-}
-
-snyk() {
-    command snyk test
-}
-
 TASK_NAMES="$(
     awk '/^[a-zA-Z0-9_]+\(\)/ {
         split($0, a, /\(\)/);

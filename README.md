@@ -188,8 +188,8 @@ The names and depth of your task trees will vary from project to project. Recomm
 Warning, when the command(s) implementing a task begin with the same name as the task, then explicitly prefix those steps with `command`:
 
 ```sh
-snyk() {
-    command snyk test
+funk() {
+    command funk .
 }
 ```
 
